@@ -1,0 +1,17 @@
+.homeBody {
+    display: flex;
+    padding-top: 30px;
+    width: 100%
+}
+
+.homeLeftBar {
+    flex: 20%;
+}
+
+.homeNewsFeed {
+    flex: 60%;
+}
+
+.homeRightBar {
+    flex: 30%;
+}
