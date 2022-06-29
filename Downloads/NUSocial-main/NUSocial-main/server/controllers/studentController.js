@@ -1,9 +1,28 @@
 const db = require('../models')
+const {Sequelize, DataTypes} = require('sequelize');
+const dbConfig = require('../config/dbConfig.js');
+const sequelize = new Sequelize(
+    dbConfig.DB,
+    dbConfig.USER,
+    dbConfig.PASSWORD, {
+        host: dbConfig.HOST,
+        dialect: dbConfig.dialect,
+        operatorsAliases: false,
+
+        pool: {
+            max: dbConfig.pool.max,
+            min: dbConfig.pool.min,
+            acquire: dbConfig.pool.acquire,
+            idle: dbConfig.pool.idle
+        }
+    }
+)
 
 // image Upload
 const multer = require('multer')
 const path = require('path')
-const bcrypt = require("bcrypt")
+const bcrypt = require("bcrypt");
+
 
 
 
@@ -18,11 +37,11 @@ const Chat = db.chats
 const addStudent = async (req, res) => {
     var password = req.body.password;
     password = await bcrypt.hash(password, 10);
-    
     let info = {
         username: req.body.username,
         nus_email: req.body.nus_email,
         password:password,
+        friendTable: req.body.username + "friends",
     }
 const student = await Student.create(info)
 .then(function(item){
@@ -31,6 +50,20 @@ const student = await Student.create(info)
     res.status(200).send("error occured")
     console.log(err);
   });
+
+  const FriendsTable = sequelize.define(info.friendTable, {
+    friendUsername: {
+        type: DataTypes.STRING,
+    }, 
+    reqStatus:{
+        type : DataTypes.STRING,
+    },
+    chatId: {
+        type: DataTypes.STRING,
+        unique: true,
+    }
+});
+await FriendsTable.sync();
 }
 
 
@@ -90,8 +123,6 @@ const updateStudent = async (req, res) => {
     const student = await Student.update(req.body, { where: { id: id }})
 
     res.status(200).send(student)
-   
-
 }
 
 // 5. delete product by id
@@ -128,12 +159,28 @@ const getStudentChats =  async (req, res) => {
 
 // 8. Upload Image Controller
 
+const addProfilePicture = async (req, res) => {
+if(!req.file) {
+    res.send("No file upload");
+} else {
+    console.log(req.file);
+    console.log(req.body);
+    console.log("username is " + req.username);
+    res.send(req.file.filename);    
+}
+}
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'Images')
+        cb(null, 'ProfilePics')
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname))
+        const imageName = req.body.username + "ProfilePic" + Date.now();
+        cb(null, imageName)
+        let info = {
+           profilePicture : imageName,
+        }
+        Student.update(info, { where : { username : req.body.username}});
     }
 })
 
@@ -150,7 +197,7 @@ const upload = multer({
         }
         cb('Give proper files formate to upload')
     }
-}).single('image')
+}).single('path')
 
 // 9. check if student is online
 
@@ -179,6 +226,7 @@ module.exports = {
     deleteStudent,
     getStudentChats,
     upload,
-    isOnline
+    isOnline,
+    addProfilePicture
     
 }

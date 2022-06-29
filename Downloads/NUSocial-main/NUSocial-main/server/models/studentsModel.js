@@ -33,6 +33,13 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false,
+        },
+        friendTable: {
+            type: DataTypes.STRING,
+            unique: true,
+        }, 
+        profilePicture: {
+            type: DataTypes.STRING,
         }
     });
 

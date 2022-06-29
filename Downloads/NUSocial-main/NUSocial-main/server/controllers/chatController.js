@@ -32,22 +32,13 @@ const addMsg = async (req, res) => {
         chat: req.body.chat,
         body: req.body.body
     }
-    const friendsFound = await FriendsList.count({ where: { friendUsername: info.chat}})
-    console.log(friendsFound);
-    if(friendsFound !== 0) {
-        console.log(friendsFound.size);
     const chat = await Chat.create(info).then(function(item){
         res.status(200).send("successfully sent message")
         console.log("successfully sent msg");
       }).catch(function (err) {
         res.status(200).send("error occured")
         console.log(err);
-      });
-    } else {
-        console.log("Friend name: " + info.chat);
-        console.log("Friends Found: " + friendsFound);
-        console.log("No such friend");
-    }
+      }); 
 }
 
 
@@ -65,12 +56,33 @@ const getAllMsgs = async (req, res) => {
 const verifyChat = async (req, res) => {
     let info = {
         chat: req.body.chat,
+        username: req.body.username
     }
-    
-    const friendsFound = await FriendsList.count({ where: { friendUsername: info.chat}})
+    const yourUsername  = info.username;
+    const yourTable = yourUsername + "friends";
+  
+    const YourTable = sequelize.define(yourTable, {
+        friendUsername: {
+            type: DataTypes.STRING,
+        }, 
+        reqStatus:{
+            type : DataTypes.STRING,
+        },
+        chatId: {
+            type: DataTypes.STRING,
+            unique: true,
+        }
+    });
+    await YourTable.sync();
+    //look for friend existence
+    const friendsFound = await YourTable.count({ where: { friendUsername: info.chat, reqStatus: "confirm"}})
     console.log(friendsFound);
     if(friendsFound !== 0) {
-        const Chat = sequelize.define(info.chat, {
+        //now give them a chatId 
+    let chatId = yourUsername + info.chat;
+    YourTable.update({ chatId : chatId },{ where : { friendUsername : info.chat}});
+    res.status(200).send(student)
+        const Chat = sequelize.define(chatId, {
             username: {
                 type: DataTypes.STRING,
             }, 

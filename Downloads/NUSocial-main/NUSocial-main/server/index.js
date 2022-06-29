@@ -57,7 +57,7 @@ const friendsListRouter = require('./routes/friendsListRouter.js')
 app.use('/api/friends', friendsListRouter)
 //static Images Folder
 
-app.use('/Images', express.static('./Images'))
+app.use('/ProfilePics', express.static('./ProfilePics'))
 
 
 //port
